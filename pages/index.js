@@ -1,0 +1,288 @@
+import { useState } from "react";
+import Head from "next/head";
+
+const BRANDS = [
+  { name: "Came", color: "#E30613", specialty: "Portails, portes de garage, bornes", website: "https://www.came.com/fr/fr",
+    docs: [
+      { title: "Came BX-74/78 — Manuel installateur", type: "Portail coulissant" },
+      { title: "Came ATI — Notice technique", type: "Portail battant" },
+      { title: "Came ZBX — Armoire de commande", type: "Électronique" },
+      { title: "Came FROG — Motorisation enterrée", type: "Portail battant" },
+    ]},
+  { name: "Nice", color: "#0066B3", specialty: "Automatismes portails & volets", website: "https://www.niceforyou.com/fr",
+    docs: [
+      { title: "Nice Robus 600/1000 — Guide rapide", type: "Portail coulissant" },
+      { title: "Nice Wingo — Notice technique", type: "Portail battant" },
+      { title: "Nice MC824H — Logique de commande", type: "Électronique" },
+    ]},
+  { name: "FAAC", color: "#003DA5", specialty: "Automatismes & contrôle d'accès", website: "https://www.faac.fr",
+    docs: [
+      { title: "FAAC 740/741 — Manuel installation", type: "Portail coulissant" },
+      { title: "FAAC 391 — Vérin portail battant", type: "Portail battant" },
+      { title: "FAAC E124 — Armoire de commande", type: "Électronique" },
+    ]},
+  { name: "BFT", color: "#F39200", specialty: "Automatismes résidentiels & industriels", website: "https://www.bft-automation.com/fr",
+    docs: [
+      { title: "BFT Deimos Ultra BT — Notice", type: "Portail coulissant" },
+      { title: "BFT Phobos BT — Vérin", type: "Portail battant" },
+      { title: "BFT Thalia — Centrale de commande", type: "Électronique" },
+    ]},
+  { name: "Somfy", color: "#FFCC00", specialty: "Volets, stores, portails, domotique", website: "https://www.somfy.fr",
+    docs: [
+      { title: "Somfy Axovia Multipro — Portail battant", type: "Portail battant" },
+      { title: "Somfy Elixo 500 3S — Portail coulissant", type: "Portail coulissant" },
+      { title: "Somfy Dexxo Pro 1000 — Porte de garage", type: "Porte de garage" },
+    ]},
+  { name: "Hörmann", color: "#003366", specialty: "Portes de garage, portes industrielles", website: "https://www.hormann.fr",
+    docs: [
+      { title: "Hörmann SupraMatic E/P — Notice", type: "Porte de garage" },
+      { title: "Hörmann WA 300 S4 — Porte industrielle", type: "Porte industrielle" },
+      { title: "Hörmann LineaMatic P — Coulissant", type: "Portail coulissant" },
+    ]},
+];
+
+const styles = {
+  page: { minHeight: "100vh", background: "#020617", color: "#f1f5f9", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+  // HOME
+  homeWrap: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", padding: "40px 20px" },
+  grid: { position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize: "36px 36px", pointerEvents: "none" },
+  blob1: { position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: "rgba(245,158,11,.1)", filter: "blur(80px)" },
+  blob2: { position: "absolute", bottom: -100, left: -100, width: 400, height: 400, borderRadius: "50%", background: "rgba(6,182,212,.08)", filter: "blur(80px)" },
+  badge: { display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(245,158,11,.3)", background: "rgba(245,158,11,.05)", fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: "#fcd34d", marginBottom: 24 },
+  dot: { width: 6, height: 6, borderRadius: "50%", background: "#fbbf24" },
+  logo: { fontSize: "clamp(56px,14vw,96px)", fontWeight: 900, letterSpacing: -4, lineHeight: 1, marginBottom: 12 },
+  sub: { color: "#94a3b8", fontSize: 15, maxWidth: 440, margin: "0 auto 48px", lineHeight: 1.6 },
+  cards: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 16, maxWidth: 700, width: "100%" },
+  card: { position: "relative", padding: 28, borderRadius: 18, border: "1px solid #1e293b", background: "rgba(15,23,42,.5)", textAlign: "left", cursor: "pointer", color: "#f1f5f9", overflow: "hidden" },
+  // HEADER
+  header: { borderBottom: "1px solid #1e293b", background: "rgba(15,23,42,.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 10 },
+  headerInner: { maxWidth: 800, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 },
+  backBtn: { padding: 8, borderRadius: 10, background: "none", border: "none", color: "#94a3b8", fontSize: 18, cursor: "pointer" },
+  // FORM
+  content: { maxWidth: 800, margin: "0 auto", padding: "24px 20px" },
+  panel: { background: "rgba(15,23,42,.5)", border: "1px solid #1e293b", borderRadius: 18, padding: 22, marginBottom: 20 },
+  label: { fontSize: 10, textTransform: "uppercase", letterSpacing: 1.5, color: "#64748b", fontWeight: 600, marginBottom: 8 },
+  input: { width: "100%", padding: "11px 14px", borderRadius: 10, background: "rgba(30,41,59,.5)", border: "1px solid #334155", color: "#f1f5f9", fontSize: 13, outline: "none", fontFamily: "inherit" },
+  btnPrimary: { width: "100%", padding: 14, borderRadius: 10, border: "none", cursor: "pointer", background: "#f59e0b", color: "#020617", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
+};
+
+function Header({ onBack, icon, accent, title, subtitle }) {
+  const border = accent === "amber" ? "rgba(245,158,11,.3)" : "rgba(6,182,212,.3)";
+  const bg = accent === "amber" ? "rgba(245,158,11,.1)" : "rgba(6,182,212,.1)";
+  return (
+    <div style={styles.header}>
+      <div style={styles.headerInner}>
+        <button onClick={onBack} style={styles.backBtn}>←</button>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, border: "1px solid " + border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>{icon}</div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: "#f1f5f9" }}>{title}</div>
+          <div style={{ fontSize: 11, color: "#64748b" }}>{subtitle}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Home({ go }) {
+  return (
+    <div style={styles.homeWrap}>
+      <div style={styles.grid} />
+      <div style={styles.blob1} />
+      <div style={styles.blob2} />
+      <div style={{ position: "relative", maxWidth: 700, width: "100%", textAlign: "center" }}>
+        <div style={styles.badge}><div style={styles.dot} />Assistant Technicien</div>
+        <h1 style={styles.logo}>SAV<span style={{ color: "#fbbf24" }}>i</span></h1>
+        <p style={styles.sub}>L'assistant diagnostic intelligent pour techniciens de la fermeture industrielle & copro/syndic</p>
+        <div style={styles.cards}>
+          <button onClick={() => go("ia")} style={styles.card}>
+            <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(245,158,11,.1)", filter: "blur(30px)" }} />
+            <div style={{ position: "relative" }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 16 }}>✨</div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Assistance IA</h2>
+              <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.5, margin: 0 }}>Décrivez les symptômes, l'IA propose causes probables et vérifications.</p>
+              <div style={{ marginTop: 18, fontSize: 13, fontWeight: 600, color: "#fbbf24" }}>Lancer un diagnostic →</div>
+            </div>
+          </button>
+          <button onClick={() => go("doc")} style={styles.card}>
+            <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(6,182,212,.1)", filter: "blur(30px)" }} />
+            <div style={{ position: "relative" }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(6,182,212,.1)", border: "1px solid rgba(6,182,212,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 16 }}>📘</div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Documentation technique</h2>
+              <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.5, margin: 0 }}>Fiches et notices constructeurs par marque et modèle.</p>
+              <div style={{ marginTop: 18, fontSize: 13, fontWeight: 600, color: "#22d3ee" }}>Parcourir la bibliothèque →</div>
+            </div>
+          </button>
+        </div>
+        <div style={{ marginTop: 48, fontSize: 10, color: "#334155", letterSpacing: 2, textTransform: "uppercase" }}>v1.0 · Fermeture industrielle & copro</div>
+      </div>
+    </div>
+  );
+}
+
+function IA({ onBack }) {
+  const [ctx, setCtx] = useState("copro");
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [symptoms, setSymptoms] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const run = async () => {
+    if (!symptoms.trim()) { setError("Décrivez les symptômes."); return; }
+    setError(null); setLoading(true); setResult(null);
+    try {
+      const res = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ctx, brand, model, symptoms }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setResult(data);
+    } catch (e) {
+      console.error(e);
+      setError("Erreur lors du diagnostic. Réessayez.");
+    } finally { setLoading(false); }
+  };
+
+  const ps = p => p === "Élevée"
+    ? { bg: "rgba(239,68,68,.15)", c: "#fca5a5", b: "rgba(239,68,68,.3)" }
+    : p === "Moyenne"
+    ? { bg: "rgba(245,158,11,.15)", c: "#fcd34d", b: "rgba(245,158,11,.3)" }
+    : { bg: "rgba(100,116,139,.15)", c: "#cbd5e1", b: "rgba(100,116,139,.3)" };
+
+  const chip = a => ({ padding: "10px 0", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", textAlign: "center", border: a ? "1px solid #f59e0b" : "1px solid #334155", background: a ? "rgba(245,158,11,.1)" : "rgba(30,41,59,.3)", color: a ? "#fcd34d" : "#94a3b8" });
+
+  return (
+    <div>
+      <Header onBack={onBack} icon="✨" accent="amber" title="Assistance IA" subtitle="Diagnostic assisté" />
+      <div style={styles.content}>
+        <div style={styles.panel}>
+          <div style={{ ...styles.label, marginBottom: 8 }}>Contexte</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
+            <button onClick={() => setCtx("copro")} style={chip(ctx === "copro")}>Copro / Syndic</button>
+            <button onClick={() => setCtx("industriel")} style={chip(ctx === "industriel")}>Site industriel</button>
+          </div>
+          <div style={{ ...styles.label, marginBottom: 8 }}>Équipement</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
+            <select value={brand} onChange={e => setBrand(e.target.value)} style={{ ...styles.input, appearance: "auto" }}>
+              <option value="">— Marque —</option>
+              {BRANDS.map(b => <option key={b.name}>{b.name}</option>)}
+              <option>Autre</option>
+            </select>
+            <input value={model} onChange={e => setModel(e.target.value)} placeholder="Modèle..." style={styles.input} />
+          </div>
+          <div style={{ ...styles.label, marginBottom: 8 }}>Symptômes <span style={{ color: "#fbbf24" }}>*</span></div>
+          <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} rows={4}
+            placeholder="Ex: Le portail coulissant ne répond plus à la télécommande. LED rouge clignotante..."
+            style={{ ...styles.input, resize: "vertical", minHeight: 100, lineHeight: 1.5, marginBottom: 16 }} />
+          {error && <div style={{ padding: 12, borderRadius: 10, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.25)", color: "#fca5a5", fontSize: 13, marginBottom: 14 }}>⚠ {error}</div>}
+          <button onClick={run} disabled={loading} style={{ ...styles.btnPrimary, background: loading ? "#334155" : "#f59e0b", color: loading ? "#64748b" : "#020617", cursor: loading ? "not-allowed" : "pointer" }}>
+            {loading ? "⏳ Analyse en cours..." : "🚀 Lancer le diagnostic"}
+          </button>
+        </div>
+
+        {result && (
+          <div>
+            <div style={{ background: "linear-gradient(135deg,rgba(245,158,11,.1),transparent)", border: "1px solid rgba(245,158,11,.25)", borderRadius: 18, padding: 20, marginBottom: 14 }}>
+              <div style={{ ...styles.label, color: "#fcd34d", marginBottom: 8 }}>✨ Synthèse</div>
+              <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>{result.synthese}</p>
+            </div>
+            {result.securite && (
+              <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.25)", borderRadius: 18, padding: 18, marginBottom: 14 }}>
+                <div style={{ ...styles.label, color: "#fca5a5", marginBottom: 8 }}>⚠ Sécurité</div>
+                <p style={{ fontSize: 13, lineHeight: 1.5, color: "#fecaca", margin: 0 }}>{result.securite}</p>
+              </div>
+            )}
+            <div style={{ ...styles.label, marginBottom: 12 }}>Causes probables</div>
+            {result.causes.map((c, i) => {
+              const s = ps(c.probabilite);
+              return (
+                <div key={i} style={{ background: "rgba(15,23,42,.5)", border: "1px solid #1e293b", borderRadius: 18, padding: 18, marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: "#1e293b", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: "#94a3b8" }}>{i + 1}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{c.cause}</div>
+                    </div>
+                    <span style={{ background: s.bg, color: s.c, border: "1px solid " + s.b, fontSize: 10, padding: "3px 10px", borderRadius: 999, fontWeight: 600, whiteSpace: "nowrap" }}>{c.probabilite}</span>
+                  </div>
+                  <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.5, marginBottom: 14 }}>{c.explication}</p>
+                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "#475569", fontWeight: 600, marginBottom: 6 }}>Vérifications</div>
+                  {c.verifications.map((v, j) => (
+                    <div key={j} style={{ display: "flex", gap: 8, fontSize: 13, color: "#cbd5e1", marginBottom: 5 }}>
+                      <span style={{ color: "#22d3ee", fontWeight: 700 }}>✓</span><span>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Doc({ onBack }) {
+  const [sel, setSel] = useState(null);
+  const [q, setQ] = useState("");
+  const brand = sel ? BRANDS.find(b => b.name === sel) : null;
+  const all = brand ? brand.docs.map(d => ({ ...d, brand: brand.name })) : BRANDS.flatMap(b => b.docs.map(d => ({ ...d, brand: b.name })));
+  const filtered = all.filter(d => d.title.toLowerCase().includes(q.toLowerCase()) || d.type.toLowerCase().includes(q.toLowerCase()));
+  const bc = a => ({ padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", border: a ? "1px solid #06b6d4" : "1px solid #334155", background: a ? "rgba(6,182,212,.1)" : "rgba(30,41,59,.3)", color: a ? "#67e8f9" : "#94a3b8" });
+
+  return (
+    <div>
+      <Header onBack={onBack} icon="📘" accent="cyan" title="Documentation technique" subtitle={brand ? brand.name : "6 marques"} />
+      <div style={styles.content}>
+        <div style={{ position: "relative", marginBottom: 20 }}>
+          <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14 }}>🔍</span>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher..." style={{ ...styles.input, paddingLeft: 40, padding: "13px 14px 13px 40px", borderRadius: 12, background: "rgba(15,23,42,.5)", border: "1px solid #1e293b" }} />
+        </div>
+        <div style={{ ...styles.label, marginBottom: 10 }}>Marques</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
+          <button onClick={() => setSel(null)} style={bc(!sel)}>Toutes</button>
+          {BRANDS.map(b => <button key={b.name} onClick={() => setSel(b.name)} style={bc(sel === b.name)}>{b.name}</button>)}
+        </div>
+        {brand && (
+          <div style={{ background: "rgba(15,23,42,.5)", border: "1px solid #1e293b", borderRadius: 16, padding: 18, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: brand.color }} />{brand.name}
+              </div>
+              <div style={{ fontSize: 13, color: "#94a3b8" }}>{brand.specialty}</div>
+            </div>
+            <a href={brand.website} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid rgba(6,182,212,.3)", background: "rgba(6,182,212,.05)", color: "#67e8f9", fontSize: 13, fontWeight: 500, textDecoration: "none" }}>Site constructeur ↗</a>
+          </div>
+        )}
+        <div style={{ ...styles.label, marginBottom: 10 }}>Documents ({filtered.length})</div>
+        {filtered.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#475569", fontSize: 14 }}>Aucun document trouvé</div>}
+        {filtered.map((d, i) => (
+          <div key={i} style={{ background: "rgba(15,23,42,.5)", border: "1px solid #1e293b", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", gap: 14, marginBottom: 6, cursor: "pointer" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#1e293b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>📄</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.title}</div>
+              <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{!sel ? d.brand + " • " : ""}{d.type}</div>
+            </div>
+            <span style={{ color: "#334155", fontSize: 14 }}>↗</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [s, setS] = useState("home");
+  return (
+    <div style={styles.page}>
+      <Head>
+        <title>SAVi — Assistant diagnostic</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#020617" />
+      </Head>
+      {s === "ia" ? <IA onBack={() => setS("home")} /> : s === "doc" ? <Doc onBack={() => setS("home")} /> : <Home go={setS} />}
+    </div>
+  );
+}
